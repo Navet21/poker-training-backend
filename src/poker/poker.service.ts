@@ -243,6 +243,11 @@ export class PokerService {
     const correctTexture = this.evaluateBoardTexture(cardsForStreet);
     const correct = correctTexture === userTexture;
 
+    let helpText: string | undefined;
+    if (!correct) {
+      helpText = this.getTextureHelp(correctTexture);
+    }
+
     // Calcular siguiente street
     let nextStreet: Street | undefined;
     let finished = false;
@@ -258,7 +263,7 @@ export class PokerService {
       nextCards = session.board.slice(0, 5);
     } else {
       finished = true;
-      this.sessions.delete(session.id);
+      //this.sessions.delete(session.id);
     }
 
     return {
@@ -268,7 +273,41 @@ export class PokerService {
       nextStreet,
       nextCards,
       finished,
+      helpText,
     };
+  }
+
+  // ---------- Explicación de texturas ----------
+
+  private getTextureHelp(texture: BoardTexture): string {
+    switch (texture) {
+      case 'super_coordinated':
+        return (
+          'Mesa extremadamente coordinada: el board permite completar escalera o ' +
+          'color con UNA sola carta de la mano (por ejemplo 4 cartas del mismo palo ' +
+          'o 4 cartas muy conectadas, a menudo con posibilidad de escalera baja como 2-3-4-5).'
+        );
+      case 'coordinated':
+        return (
+          'Mesa coordinada: es posible que alguien ya tenga escalera o color con sus ' +
+          'DOS cartas de mano. Hay proyectos claros de color (3+ cartas del mismo palo) ' +
+          'o de escalera con cartas muy conectadas.'
+        );
+      case 'semi_coordinated':
+        return (
+          'Mesa semicoordinada: no llega a coordinada, pero las cartas no están ' +
+          'totalmente aisladas. Miramos las dos cartas no emparejadas más próximas ' +
+          'en valor (ignorando 2-3-4-5): si entre ellas hay pocos huecos (2 o 3 ' +
+          'si además hay proyecto de color), la mesa se considera semicoordinada.'
+        );
+      case 'dry':
+      default:
+        return (
+          'Mesa seca: no cumple los criterios de coordinada ni de semicoordinada. ' +
+          'Las cartas están muy separadas entre sí y apenas hay proyectos fuertes de ' +
+          'color o escalera.'
+        );
+    }
   }
 
   getTrainingSessionSummary(sessionId: string): TrainingSessionSummaryResponse {
