@@ -6,6 +6,8 @@ import {
   TrainingSessionSummaryResponse,
 } from './interfaces';
 import { AnswerDto } from './dtos/answer.dto';
+import { OutsDto } from './dtos/outs.dto'; // ✅
+import { OutsAnswerDto } from './dtos/outs-answer.dto';
 
 @Controller('training')
 export class PokerController {
@@ -30,5 +32,25 @@ export class PokerController {
     @Param('id') sessionId: string,
   ): TrainingSessionSummaryResponse {
     return this.pokerService.getTrainingSessionSummary(sessionId);
+  }
+
+  @Post('outs')
+  outs(@Body() dto: OutsDto) {
+    return this.pokerService.calculateOuts(dto.hole, dto.board);
+  }
+
+  @Post('outs/session')
+  createOutsSession() {
+    return this.pokerService.createOutsTrainingSession();
+  }
+
+  @Post('outs/session/:id/answer')
+  answerOuts(@Param('id') sessionId: string, @Body() body: OutsAnswerDto) {
+    console.log('[OUTS CONTROLLER BODY]', body);
+    return this.pokerService.answerOutsTraining(
+      sessionId,
+      body.street,
+      body.outs,
+    );
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Board, BoardTexture, Rank } from '../types';
+import type { Board, BoardTexture, Rank } from '../types';
+import { getBoardBaseFlags } from '../domain/get-board-flags';
 
 @Injectable()
 export class TextureService {
@@ -21,6 +22,11 @@ export class TextureService {
 
   evaluate(board: Board): BoardTexture {
     if (board.length < 3) return 'dry';
+
+    // ✅ flags base disponibles (los usarás en outs)
+    const baseFlags = getBoardBaseFlags(board);
+    // Si quieres, podrías empezar a usar baseFlags.flushState / straightPressure aquí.
+    // Por ahora no hace falta, mantenemos tu clasificación estable.
 
     const numericRanks = board.map((c) => this.RANK_VALUES[c.rank]);
     const sortedRanks = [...numericRanks].sort((a, b) => a - b);
@@ -58,10 +64,8 @@ export class TextureService {
     const hasFourToStraightHigh = a.high || b.high;
     const hasFourToStraightLow = a.low || b.low;
 
-    // 1) extremadamente
     if (hasFourToFlush || hasFourToStraightHigh) return 'super_coordinated';
 
-    // 2) coordinada
     const uniqRanks = Array.from(new Set(sortedRanks)).sort((x, y) => x - y);
     let hasThreeToStraight = false;
     for (let i = 0; i <= uniqRanks.length - 3; i++) {
@@ -74,7 +78,6 @@ export class TextureService {
     if (hasThreeToFlush || hasThreeToStraight || hasFourToStraightLow)
       return 'coordinated';
 
-    // 3) semi
     const highRanks = uniqRanks.filter((v) => v >= 6);
     if (highRanks.length >= 2) {
       let minGap = Infinity;

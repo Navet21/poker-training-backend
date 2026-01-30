@@ -15,6 +15,10 @@ import { DeckService } from './deck/deck.service';
 import { TextureService } from './texture/texture.service';
 import { getTextureHelp } from './texture/texture.help';
 import { TrainingSessionStore } from './sessions/training-session.store';
+import { getBoardBaseFlags } from './domain/get-board-flags';
+import type { BoardFlags } from './domain/board-flags.type';
+import type { Card } from './interfaces';
+import { calculateAdjustedOuts } from './domain/outs/outs-engine';
 
 @Injectable()
 export class PokerService {
@@ -25,11 +29,12 @@ export class PokerService {
   ) {}
 
   createTrainingSession(): TrainingSessionInitResponse {
-    const board = this.deck.dealFiveBoard();
+    const { board, hole } = this.deck.dealHoleAndBoard();
     const sessionId = randomUUID();
 
     const session: TrainingSession = {
       id: sessionId,
+      hole,
       board,
       currentStreet: 'flop',
     };
@@ -128,5 +133,116 @@ export class PokerService {
     if (street === 'flop') return board.slice(0, 3);
     if (street === 'turn') return board.slice(0, 4);
     return board.slice(0, 5);
+  }
+
+  calculateOuts(hole: Card[], board: Board) {
+    const flop = board.slice(0, 3);
+    const base = getBoardBaseFlags(flop);
+    const texture = this.texture.evaluate(flop);
+
+    const flags: BoardFlags = { ...base, texture };
+    return calculateAdjustedOuts(hole, flop, flags);
+  }
+
+  //Outs
+
+  createOutsTrainingSession() {
+    const { hole, board } = this.deck.dealHoleAndBoard();
+    const sessionId = randomUUID();
+
+    const session: TrainingSession = {
+      id: sessionId,
+      hole,
+      board,
+      currentStreet: 'flop',
+    };
+
+    this.store.set(session);
+    console.log('[OUTS CREATE]', {
+      sessionId,
+      currentStreet: session.currentStreet,
+    });
+
+    return {
+      sessionId,
+      street: session.currentStreet,
+      hole,
+      cards: board.slice(0, 3),
+    };
+  }
+
+  answerOutsTraining(sessionId: string, street: Street, userOuts: number) {
+    const session = this.store.get(sessionId);
+    if (!session)
+      throw new NotFoundException('Sesión de entrenamiento no encontrada');
+
+    console.log('[OUTS ANSWER]', {
+      sessionId,
+      street,
+      currentStreet: session.currentStreet,
+    });
+
+    if (street !== session.currentStreet) {
+      throw new BadRequestException(
+        'Street enviada no coincide con el estado actual de la sesión',
+      );
+    }
+
+    const cardsForStreet = this.getCardsForStreet(session.board, street);
+
+    console.log('[OUTS INPUT]', { hole: session.hole, board: cardsForStreet });
+
+    // En river no hay carta siguiente: opcionalmente devolvemos 0
+    if (street === 'river') {
+      this.store.delete(sessionId);
+      return {
+        correct: userOuts === 0,
+        street,
+        userOuts,
+        correctOuts: 0,
+        components: [],
+        meta: null,
+        finished: true,
+      };
+    }
+
+    const base = getBoardBaseFlags(cardsForStreet);
+    const texture = this.texture.evaluate(cardsForStreet);
+    const flags: BoardFlags = { ...base, texture };
+
+    const result = calculateAdjustedOuts(session.hole, cardsForStreet, flags);
+
+    const tolerance = 0.5;
+    const correct = Math.abs(userOuts - result.totalOuts) <= tolerance;
+
+    let nextStreet: Street | undefined;
+    let nextCards: Board | undefined;
+    let finished = false;
+
+    if (street === 'flop') {
+      nextStreet = 'turn';
+      session.currentStreet = 'turn';
+      nextCards = session.board.slice(0, 4);
+      this.store.set(session);
+    } else {
+      nextStreet = 'river';
+      session.currentStreet = 'river';
+      nextCards = session.board.slice(0, 5);
+      this.store.set(session);
+    }
+
+    return {
+      correct,
+      street,
+      hole: session.hole,
+      cards: cardsForStreet,
+      userOuts,
+      correctOuts: result.totalOuts,
+      components: result.components,
+      meta: result.meta,
+      nextStreet,
+      nextCards,
+      finished,
+    };
   }
 }

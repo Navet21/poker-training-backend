@@ -44,4 +44,11 @@ export class DeckService {
     const deck = this.shuffle(this.generateDeck());
     return deck.slice(0, 5);
   }
+
+  dealHoleAndBoard(): { hole: Card[]; board: Board } {
+    const deck = this.shuffle(this.generateDeck());
+    const hole = deck.slice(0, 2);
+    const board = deck.slice(2, 7) as Board;
+    return { hole, board };
+  }
 }
