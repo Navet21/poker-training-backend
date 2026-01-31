@@ -19,6 +19,7 @@ import { getBoardBaseFlags } from './domain/get-board-flags';
 import type { BoardFlags } from './domain/board-flags.type';
 import type { Card } from './interfaces';
 import { calculateAdjustedOuts } from './domain/outs/outs-engine';
+import { buildOutsExplanation } from './domain/outs/outs-explanation';
 
 @Injectable()
 export class PokerService {
@@ -176,12 +177,6 @@ export class PokerService {
     if (!session)
       throw new NotFoundException('Sesión de entrenamiento no encontrada');
 
-    console.log('[OUTS ANSWER]', {
-      sessionId,
-      street,
-      currentStreet: session.currentStreet,
-    });
-
     if (street !== session.currentStreet) {
       throw new BadRequestException(
         'Street enviada no coincide con el estado actual de la sesión',
@@ -189,8 +184,6 @@ export class PokerService {
     }
 
     const cardsForStreet = this.getCardsForStreet(session.board, street);
-
-    console.log('[OUTS INPUT]', { hole: session.hole, board: cardsForStreet });
 
     // En river no hay carta siguiente: opcionalmente devolvemos 0
     if (street === 'river') {
@@ -211,6 +204,11 @@ export class PokerService {
     const flags: BoardFlags = { ...base, texture };
 
     const result = calculateAdjustedOuts(session.hole, cardsForStreet, flags);
+    const explanation = buildOutsExplanation(
+      result.totalOuts,
+      result.components,
+      flags,
+    );
 
     const tolerance = 0.5;
     const correct = Math.abs(userOuts - result.totalOuts) <= tolerance;
@@ -239,6 +237,7 @@ export class PokerService {
       userOuts,
       correctOuts: result.totalOuts,
       components: result.components,
+      explanation,
       meta: result.meta,
       nextStreet,
       nextCards,
