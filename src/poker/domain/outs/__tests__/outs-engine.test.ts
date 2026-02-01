@@ -427,4 +427,54 @@ describe('outs-engine (v1)', () => {
     const bdsd = result.components.find((c) => c.type === 'BACKDOOR_STRAIGHT');
     expect(bdsd).toBeUndefined();
   });
+
+  it('Explanation menciona backdoor flush cuando es el único componente relevante', () => {
+    const hole: Card[] = [
+      { rank: 'A', suit: 'S' },
+      { rank: '7', suit: 'S' },
+    ];
+
+    // Flop con EXACTAMENTE 1 pica (K♠) -> BDFD
+    const board: Card[] = [
+      { rank: 'K', suit: 'S' },
+      { rank: '9', suit: 'D' },
+      { rank: '2', suit: 'C' },
+    ];
+
+    // Forzamos overcards a 0 para que no meta ruido
+    const flags: BoardFlags = {
+      pairedType: 'none',
+      isPaired88Plus: false,
+      flushState: 'rainbow',
+      straightPressure: 'none',
+      texture: 'super_coordinated',
+    };
+
+    const result = calculateAdjustedOuts(hole, board, flags);
+
+    // Aseguramos que NO hay draws directos
+    expect(
+      result.components.find((c) => c.type === 'FLUSH_DRAW'),
+    ).toBeUndefined();
+    expect(
+      result.components.find((c) => c.type === 'STRAIGHT_DRAW'),
+    ).toBeUndefined();
+
+    // Debe existir BDFD
+    const bdfd = result.components.find((c) => c.type === 'BACKDOOR_FLUSH');
+    expect(bdfd).toBeDefined();
+    expect(bdfd?.outs).toBeGreaterThan(0);
+
+    // Y la explicación debe mencionarlo
+    // (no dependemos del texto exacto, solo de que lo nombre)
+    // Nota: usa includes con una palabra estable.
+    const explanation = require('../outs-explanation').buildOutsExplanation(
+      result.totalOuts,
+      result.components,
+      flags,
+    );
+
+    expect(explanation.toLowerCase()).toContain('backdoor');
+    expect(explanation.toLowerCase()).toContain('color');
+  });
 });

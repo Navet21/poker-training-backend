@@ -93,10 +93,8 @@ No tienes proyectos directos de color ni de escalera en este street, y tus carta
   for (const c of components) {
     if (c.type === 'OVER_CARDS') {
       const v = overcardValue(flags);
-      // No sabemos si son 1 o 2 overcards, pero podemos inferirlo:
-      // si v = 2 y c.outs = 4 -> 2 overcards; si c.outs = 2 -> 1 overcard.
-      // si v = 1 -> outs = #overcards
-      // si v = 0 -> outs = 0
+
+      // Inferimos #overcards desde outs y valor por overcard
       const estimatedCount = v === 0 ? 0 : Math.round(c.outs / Math.max(v, 1));
 
       lines.push(
@@ -112,9 +110,6 @@ No tienes proyectos directos de color ni de escalera en este street, y tus carta
     }
 
     if (c.type === 'FLUSH_DRAW') {
-      const paired = flags.pairedType !== 'none';
-      // Tu regla ajusta: no emparejada 9, emparejada 7, dobles/trips 4, etc.
-      // Aquí lo decimos humano, sin soltar el "pairedType=..."
       const pairedText =
         flags.pairedType === 'none'
           ? 'mesa no emparejada'
@@ -131,7 +126,6 @@ No tienes proyectos directos de color ni de escalera en este street, y tus carta
     }
 
     if (c.type === 'STRAIGHT_DRAW') {
-      // Humanizamos según presión / flushState / pairedType
       const hasFlushPressure = flags.flushState !== 'rainbow';
       const isPaired = flags.pairedType !== 'none';
 
@@ -146,6 +140,28 @@ No tienes proyectos directos de color ni de escalera en este street, y tus carta
       );
       continue;
     }
+
+    // ✅ NUEVO: BACKDOOR FLUSH
+    if (c.type === 'BACKDOOR_FLUSH') {
+      const pairedText =
+        flags.pairedType === 'none' ? 'mesa no emparejada' : 'mesa emparejada';
+
+      lines.push(
+        `• Color residual (backdoor al As): necesitas turn y river del palo. En ${pairedText} lo contamos como → ${c.outs} out(s).`,
+      );
+      continue;
+    }
+
+    // ✅ NUEVO: BACKDOOR STRAIGHT
+    if (c.type === 'BACKDOOR_STRAIGHT') {
+      lines.push(
+        `• Escalera residual (backdoor): necesitas turn y river conectando. En mesa limpia lo contamos como → ${c.outs} out.`,
+      );
+      continue;
+    }
+
+    // ✅ NUEVO: fallback para futuros componentes
+    lines.push(`• ${c.type}: ${c.outs} outs.`);
   }
 
   lines.push(`\nTotal: ${totalOuts} outs ajustadas.`);
