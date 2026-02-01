@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import {
@@ -178,9 +179,11 @@ export class PokerService {
       throw new NotFoundException('Sesión de entrenamiento no encontrada');
 
     if (street !== session.currentStreet) {
-      throw new BadRequestException(
-        'Street enviada no coincide con el estado actual de la sesión',
-      );
+      throw new UnprocessableEntityException({
+        code: 'STREET_MISMATCH',
+        expected: session.currentStreet,
+        received: street,
+      });
     }
 
     const cardsForStreet = this.getCardsForStreet(session.board, street);
@@ -222,11 +225,15 @@ export class PokerService {
       session.currentStreet = 'turn';
       nextCards = session.board.slice(0, 4);
       this.store.set(session);
-    } else {
+
+      finished = false;
+    } else if (street === 'turn') {
       nextStreet = 'river';
       session.currentStreet = 'river';
       nextCards = session.board.slice(0, 5);
-      this.store.set(session);
+
+      finished = true;
+      this.store.delete(sessionId); // cerramos aquí
     }
 
     return {
