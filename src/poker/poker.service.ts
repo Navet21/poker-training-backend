@@ -235,7 +235,6 @@ export class PokerService {
       finished = true;
       this.store.delete(sessionId); // cerramos aquí
     }
-
     return {
       correct,
       street,

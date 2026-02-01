@@ -46,7 +46,6 @@ export class PokerController {
 
   @Post('outs/session/:id/answer')
   answerOuts(@Param('id') sessionId: string, @Body() body: OutsAnswerDto) {
-    console.log('[OUTS CONTROLLER BODY]', body);
     return this.pokerService.answerOutsTraining(
       sessionId,
       body.street,
