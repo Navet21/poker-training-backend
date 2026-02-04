@@ -1,123 +1,123 @@
-# Cálculo de Outs — Motor de Entrenamiento de Poker
+# 🧠 Board Lab — Outs Engine (Backend)
 
-Este proyecto implementa un motor de cálculo de outs ajustadas orientado al entrenamiento real de poker, no a la simulación ni al cálculo exacto de equity.
+Este proyecto implementa un **motor de cálculo de outs ajustadas** orientado al **entrenamiento real de poker**, no a la simulación masiva ni al cálculo exacto de equity.
 
-El objetivo principal es ayudar al jugador a identificar correctamente proyectos, entender por qué valen lo que valen y tomar mejores decisiones en mesa (call, raise o fold).
+El objetivo es ayudar al jugador a:
 
-## Enfoque del sistema
+- Identificar correctamente proyectos
+- Entender **por qué valen lo que valen**
+- Tomar mejores decisiones en mesa (call / raise / fold)
 
-El motor sigue un enfoque heurístico y pedagógico, inspirado en metodología de coaching:
+El sistema está diseñado para **enseñar a pensar**, no para devolver números sin contexto.
 
-No busca calcular equity exacta.
+---
 
-Prioriza el razonamiento sobre el resultado.
+## 🎯 Filosofía del motor
 
-Penaliza proyectos débiles en mesas peligrosas.
+Este motor sigue un enfoque **heurístico y pedagógico**, inspirado en metodología de coaching.
 
-Refuerza la identificación de spots sin equity.
+- ❌ No busca calcular equity exacta
+- 🧠 Prioriza el razonamiento sobre el resultado
+- ⚠️ Penaliza proyectos débiles en mesas peligrosas
+- 🚫 Refuerza la identificación de spots sin equity
+- 📚 Explica el _por qué_ detrás de cada decisión
 
-El sistema enseña a pensar, no solo a contar.
+No es una calculadora. Es una herramienta de aprendizaje.
 
-## Cálculo por componentes
+---
 
-Las outs se calculan de forma modular, separando cada fuente de equity:
+## 🧩 Cálculo por componentes
 
-Overcards
+Las outs se calculan de forma **modular**, separando cada fuente de equity:
 
-Proyectos de color
+- Overcards
+- Proyectos de color
+- Proyectos de escalera
+- Backdoors realistas  
+  (color y escalera, solo en flop)
 
-Proyectos de escalera
+Cada componente se evalúa de forma independiente y luego se **ajusta dinámicamente** según el contexto del board.
 
-Backdoors realistas (color y escalera, solo en flop)
+---
 
-Cada componente se evalúa de forma independiente y luego se ajusta según el contexto del board.
-
-## Ajustes dinámicos según el board
+## ⚙️ Ajustes dinámicos según el board
 
 Las outs se ajustan automáticamente teniendo en cuenta:
 
-Textura del board
+### 🟢 Textura del board
 
-seca
+- Seca
+- Semi-coordinada
+- Coordinada
+- Extremadamente coordinada
 
-semicoordinada
+### 🟡 Mesas emparejadas
 
-coordinada
+- Pareja simple
+- Doble pareja
+- Trío
 
-extremadamente coordinada
+### 🔵 Presión de color
 
-Mesas emparejadas
+- Rainbow
+- Two-tone
+- Three-tone
 
-pareja simple
+### 🔴 Presión de escalera
 
-doble pareja
+- Conectividad a dos cartas
+- Conectividad a una carta
 
-trío
+Este enfoque evita el error clásico de contar siempre **outs teóricas** sin considerar el peligro real del spot.
 
-Presión de color
+---
 
-rainbow
+## 💬 Explicaciones humanas
 
-two-tone
+El motor **no devuelve solo un número**.
 
-three-tone
+Cada respuesta incluye una explicación en lenguaje natural que detalla:
 
-Presión de escalera
-
-conectividad a dos cartas
-
-conectividad a una carta
-
-Esto evita el error común de contar siempre “outs teóricas” sin considerar el peligro real del spot.
-
-#Explicaciones humanas
-
-El motor no devuelve solo un número.
-
-Cada resultado incluye una explicación en lenguaje natural, pensada para que el usuario entienda:
-
-qué proyectos tiene
-
-por qué valen más o menos
-
-cómo afecta la textura del board
-
-cuándo un proyecto pierde valor
-
-cuándo un spot es simplemente un fold
+- Qué proyectos están activos
+- Por qué valen más o menos
+- Cómo afecta la textura del board
+- Cuándo un proyecto pierde valor
+- Cuándo el spot es simplemente un **fold**
 
 El objetivo es simular el razonamiento de un coach, no el output de una calculadora.
 
-#Testing y fiabilidad
+---
+
+## 🧪 Testing y fiabilidad
 
 El motor está cubierto por tests unitarios que validan:
 
-cálculo correcto de outs por componente
+- Cálculo correcto de outs por componente
+- Ajustes en mesas emparejadas
+- Comportamiento en texturas extremas
+- Activación y bloqueo correcto de backdoors
+- Coherencia entre lógica y explicación
 
-ajustes en mesas emparejadas
+Esto garantiza que el sistema sea **estable, extensible y fiable** a medida que se añadan nuevas funcionalidades.
 
-comportamiento en texturas extremas
+---
 
-activación y bloqueo correcto de backdoors
+## 🛣️ Roadmap
 
-coherencia entre lógica y explicación
+El motor actual se mantiene estable mientras se planifican nuevas capas de entrenamiento:
 
-Esto garantiza que el sistema sea estable, extensible y fiable a medida que se añadan nuevas funcionalidades.
+- Evaluación de fuerza de mano (_hand strength_)
+- Integración de equity aproximada (enfoque pedagógico)
+- Nuevos entrenadores:
+  - ¿Quién va por delante?
+  - ¿Cuánta equity tengo realmente?
+  - Entrenamiento de sizing y toma de decisiones
 
-## Próximas mejoras (roadmap)
+El diseño actual permite crecer sin romper la lógica existente.
 
-El backend se mantiene estable mientras se planifican nuevas capas de entrenamiento:
+---
 
-Evaluación de fuerza de mano (hand strength) según board
+## 🧠 Nota final
 
-Integración de equity aproximada
-
-Nuevos entrenadores:
-
-“¿Quién va por delante?”
-
-“¿Cuánta equity tengo realmente?”
-
-Entrenamiento de sizing y toma de decisiones
-
-El motor actual está diseñado para crecer sin romper la lógica existente.
+Board Lab no pretende sustituir solvers ni herramientas profesionales.
+Su propósito es cubrir el espacio entre **saber teoría** y **aplicarla correctamente en mesa**.

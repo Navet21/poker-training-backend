@@ -160,10 +160,6 @@ export class PokerService {
     };
 
     this.store.set(session);
-    console.log('[OUTS CREATE]', {
-      sessionId,
-      currentStreet: session.currentStreet,
-    });
 
     return {
       sessionId,
