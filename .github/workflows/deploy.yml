@@ -38,4 +38,4 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 2222
           script: |
-            ~/apps/poker/deploy.sh
+            ~/apps/poker/deploy-backend.sh
