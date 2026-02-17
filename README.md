@@ -121,3 +121,8 @@ El diseño actual permite crecer sin romper la lógica existente.
 
 Board Lab no pretende sustituir solvers ni herramientas profesionales.
 Su propósito es cubrir el espacio entre **saber teoría** y **aplicarla correctamente en mesa**.
+
+## License
+
+This project is licensed under the MIT License.
+
